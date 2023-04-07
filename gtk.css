@@ -1,0 +1,14 @@
+/*	WHISKERMENU	 */
+window.whiskermenu { opacity: 0.8; }
+
+/*	THUNAR  */
+window.thunar { opacity: 0.85; }
+/* sidebar */
+.thunar .sidebar .view { background-color: #1c1c1c; }
+/* main view */
+.thunar .standard-view .view { background-color: #1c1c1c; }
+/* status bar */
+.thunar grid paned grid  { background-color: #1c1c1c;}
+/* toolbar */
+.thunar toolbar, .thunar toolbar entry  { background-color: #111; }
+

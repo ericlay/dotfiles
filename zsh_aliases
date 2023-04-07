@@ -1,0 +1,91 @@
+### Custom Alias File 
+##  sourced by .zshrc
+
+
+alias cp="cp -i"                                                # Confirm before overwriting something
+alias df='df -h'                                                # Human-readable sizes
+alias free='free -m'                                            # Show sizes in MB
+
+
+### Check on free space and overgrowing files
+alias freespace="sudo du -h /* --exclude={'proc','run'}| sort -hr | less"
+
+
+### Get system info via inxi [use -z for private filters]
+alias sysinfo="sudo inxi -FdfiJlmopru -W 75013 -xxx -t && echo -e ' \n' && systemd-analyze"
+
+
+### EXA
+export EXA_COLORS="uu=38;5;42:di=38;5;33:fi=38;5;183:ex=38;5;125:sn=38;5;13:sb=38;5;13:uw=38;5;91:gw=38;5;91:tw=38;5;91:ur=38;5;11:gr=38;5;11:tr=38;5;11:ux=38;5;42:gx=38;5;42:tx=38;5;42:ue=38;5;42"
+export EXA_ICON_SPACING=1
+alias ls='exa --icons --color always'                                             # ls
+alias ll='exa -lbGFa --git --icons --color always'                              # long list
+alias llm='exa -lbGF --git --sort=modified'                                     # long list, modified date sort
+alias la='exa -bGFa --git --color always --icons'                               # shorter all list
+alias lla='exa -lbhHigUmuSa --time-style=long-iso --git --color-scale --icons'  # longer all list
+alias lx='exa -lbhHigUmuSa@ --time-style=long-iso --git --color-scale'          # all
+
+
+### BAT
+export BAT_THEME="Dracula"
+export BAT_STYLE="full"
+alias cat='bat'
+
+
+### Update homeServer
+alias homeServer="ssh ez@192.168.0.178"
+alias updateserver='ssh -t ez@192.168.0.178 "sudo -- sh -c /home/ez/.local/bin/updater"'
+
+
+### COPYFILE
+cpfile() {
+    xclip -sel c "$@" && echo -e "\n\"$@\" was copied to the clipboard\n"
+}
+
+
+### for Fuzzy History Finder utility
+fhf() {
+	cat $HOME/.zhistory |
+	fzf --scheme=history \
+	--cycle \
+	--border=double \
+	--height=60% \
+	--border-label="| Command History |" \
+	--margin=8% \
+	--padding=4% \
+	--header="select command to copy" \
+	--info=hidden \
+	--tac |
+	tr -d '\n' |
+	xclip -sel c 
+}
+
+
+###	for Fuzzy Man Finder utility
+fmf() {
+	man -k . | 
+	sort - |
+	fzf -q "$1" +m \
+	--cycle \
+	--reverse \
+	--color='fg:-1' \
+	--preview='man {1}' \
+	--preview-window=70%:wrap:border-rounded \
+	--preview-label="| Manual Entry |"
+}
+
+
+### Test terminal color codes and visual appearance
+alias colors="curl -s https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash"
+
+
+### Launch PowerShell w fancy ps1
+alias pwsh="clear && pwsh -NoExit -c /home/ez/OMP/pwshPromt.ps1"
+
+
+### Pacnew file maintenance with pacdiff using meld
+alias pacnew="sudo DIFFPROG=meld pacdiff"
+
+
+###	for using GITHUB personal access token
+alias gitpw="cpfile ~/Git/PersonalAccessToken/PAT"
