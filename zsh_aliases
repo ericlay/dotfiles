@@ -43,7 +43,7 @@ cpfile() {
 }
 
 
-### for Fuzzy History Finder utility
+### Fuzzy History Finder utility
 fhf() {
 	cat $HOME/.zhistory |
 	fzf --scheme=history \
@@ -66,7 +66,7 @@ fhf() {
 }
 
 
-###	for Fuzzy Man Finder utility
+###	Fuzzy Man Finder utility
 fmf() {
 	man -k . | 
 	sort - |
@@ -77,13 +77,13 @@ fmf() {
 	--prompt=' ' \
   	--pointer='󰧚 ' \
   	--tiebreak=begin,chunk,length \
-	--preview='man {1}' \
+	--preview='man {1} | col -bf' \
 	--preview-window=70%:wrap:border-rounded \
 	--preview-label="| Manual Entry |"
 }
 
 
-### Emoji picker
+### Emoji selector
 emojis() {
 	emojis=$(curl -sSL 'https://git.io/JXXO7')
 	echo $emojis |
@@ -119,5 +119,5 @@ alias pwsh="clear && pwsh -NoExit -c /home/ez/OMP/pwshPromt.ps1"
 alias pacnew="sudo DIFFPROG=meld pacdiff"
 
 
-###	for using GITHUB personal access token
+###	GITHUB personal access token
 alias gitpw="cpfile ~/Git/PersonalAccessToken/PAT"
