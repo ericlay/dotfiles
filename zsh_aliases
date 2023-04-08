@@ -77,7 +77,7 @@ fmf() {
 	--prompt=' ' \
   	--pointer='󰧚 ' \
   	--tiebreak=begin,chunk,length \
-	--preview="tldr {1}; echo -e '\t\t\t\t  MANUAL PAGE:'; man -Hw3m {1} 2> /dev/null" \
+	--preview="echo -e '\n\t\t\t\t   \033[4mCHEAT SHEET:\033[0m\n'; cheat {1}; echo -e '\n\t\t\t\t      \033[4mTLDR:\033[0m\n'; tldr {1}; echo -e '\n\t\t\t\t  \033[4mMANUAL PAGE:\033[0m\n'; man -Hw3m {1} 2> /dev/null" \
 	--preview-window=62%:wrap:border-rounded \
 	--preview-label="| Manual Entry |"
 }
