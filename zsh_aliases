@@ -77,8 +77,8 @@ fmf() {
 	--prompt=' ' \
   	--pointer='󰧚 ' \
   	--tiebreak=begin,chunk,length \
-	--preview='man {1} | col -bf' \
-	--preview-window=70%:wrap:border-rounded \
+	--preview="tldr {1}; echo -e '\t\t\t\t  MANUAL PAGE:'; man -Hw3m {1} 2> /dev/null" \
+	--preview-window=62%:wrap:border-rounded \
 	--preview-label="| Manual Entry |"
 }
 
