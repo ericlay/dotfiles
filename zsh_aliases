@@ -49,12 +49,17 @@ fhf() {
 	fzf --scheme=history \
 	--cycle \
 	--border=double \
-	--height=60% \
 	--border-label="| Command History |" \
-	--margin=8% \
-	--padding=4% \
-	--header="select command to copy" \
+	--margin=2,20,2,20 \
+	--padding=0,10,0,22 \
+	--height=60% \
+  	--color='fg+:15,fg:42,hl+:134,hl:123,query:134,gutter:0,label:134,border:134,prompt:15,pointer:15,marker:15,header:123' \
+	--prompt=' ' \
+  	--pointer='󰧚 ' \
+	--header="Select command to copy" \
 	--info=hidden \
+	--no-scrollbar \
+	--reverse \
 	--tac |
 	tr -d '\n' |
 	xclip -sel c 
@@ -68,10 +73,37 @@ fmf() {
 	fzf -q "$1" +m \
 	--cycle \
 	--reverse \
-	--color='fg:-1' \
+  	--color='fg+:15,fg:42,hl+:134,hl:123,query:134,gutter:0,label:134,border:134,prompt:15,pointer:15,marker:15,header:123' \
+	--prompt=' ' \
+  	--pointer='󰧚 ' \
+  	--tiebreak=begin,chunk,length \
 	--preview='man {1}' \
 	--preview-window=70%:wrap:border-rounded \
 	--preview-label="| Manual Entry |"
+}
+
+
+### Emoji picker
+emojis() {
+	emojis=$(curl -sSL 'https://git.io/JXXO7')
+	echo $emojis |
+	fzf --cycle \
+	--border=double \
+	--border-label="| Emoji Selector |" \
+	--margin=2,20,2,20 \
+	--padding=0,10,0,22 \
+	--height=60% \
+  	--color='fg+:15,fg:42,hl+:134,hl:123,query:134,gutter:0,label:134,border:134,prompt:15,pointer:15,marker:15,header:123' \
+	--prompt=' ' \
+  	--pointer='󰧚 ' \
+	--header="Select emoji to copy" \
+	--info=hidden \
+	--no-scrollbar \
+	--tiebreak=begin,chunk,length \
+	--reverse |
+	awk '{print $1}' |
+	tr -d '\n' |
+	xclip -sel c 	
 }
 
 
