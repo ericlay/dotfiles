@@ -112,7 +112,7 @@ alias colors="curl -s https://gist.githubusercontent.com/HaleTom/89ffe32783f89f4
 
 
 ### Launch PowerShell w fancy ps1
-alias pwsh="clear && pwsh -NoExit -c /home/ez/OMP/pwshPromt.ps1"
+alias pwsh="pwsh -NoExit -c /home/ez/OMP/pwshPromt.ps1"
 
 
 ### Pacnew file maintenance with pacdiff using meld
@@ -121,3 +121,10 @@ alias pacnew="sudo DIFFPROG=meld pacdiff"
 
 ###	GITHUB personal access token
 alias gitpw="cpfile ~/Git/PersonalAccessToken/PAT"
+
+### Pokemon fastfetch
+alias fetch="fastfetch --logo <(pokemon-colorscripts -n gengar --no-title)"
+
+pokefetch() {  
+	fastfetch --logo <(pokemon-colorscripts -n "$1" --no-title)
+}
