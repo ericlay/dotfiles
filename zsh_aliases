@@ -1,11 +1,4 @@
-man -k . |
-sort - |
-fzf -q "$1" +m \
---cycle \
---reverse \
---tiebreak=begin,chunk,length \
---preview="echo -e '\n\t\t\t\t \033[4mCHEAT SHEET:\033[0m\n'; cheat {1}; echo -e '\n\t\t\t\t \033[4mTLDR:\033[0m\n'; tldr {1}; echo -e '\n\t\t\t\t \033[4mMANUAL PAGE:\033[0m\n'; man -Hw3m {1} 2> /dev/null" \
---preview-window=62%:wrap:border-rounded### Custom Alias File 
+### Custom Alias File 
 ##  sourced by .zshrc
 
 
