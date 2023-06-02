@@ -82,6 +82,21 @@ fmf() {
 	--preview-label="| Manual Entry |"
 }
 
+### Fuzzy Cheatsheat utility (WIP may replace fmf)
+\?() {
+	curl -s cheat.sh/:list > /tmp/cheatlist
+	fzf --preview='curl -s cheat.sh/{}; echo; man -Hw3m {} 2> /dev/null' \
+		--bind=ctrl-h:preview:'curl -s cheat.sh/:help' \
+		--preview-window=62%:wrap:border-rounded \
+		--color='fg+:15,fg:42,hl+:134,hl:123,query:134,gutter:0,label:134,border:134,prompt:15,pointer:15,marker:15,header:123' \
+		--tiebreak=begin,chunk,length \
+		--reverse \
+		--cycle \
+		--prompt=' ' \
+	  	--pointer='󰧚 ' \
+		< /tmp/cheatlist
+}
+
 
 ### Emoji selector
 emojis() {
