@@ -136,3 +136,8 @@ alias pacnew="sudo DIFFPROG=meld pacdiff"
 
 ###	GITHUB personal access token
 alias gitpw="cpfile ~/Git/PersonalAccessToken/PAT"
+
+### IM A CHILD
+🖕() {
+	echo -e "\n\t\t🖕\n\tFuck you too, bud\n"
+}
