@@ -32,11 +32,6 @@ export BAT_STYLE="full"
 alias cat='bat'
 
 
-### Update homeServer
-alias homeServer="ssh ez@192.168.0.178"
-alias updateserver='ssh -t ez@192.168.0.178 "sudo -- sh -c /home/ez/.local/bin/updater"'
-
-
 ### COPYFILE
 cpfile() {
     xclip -sel c "$@" && echo -e "\n\"$@\" was copied to the clipboard\n"
