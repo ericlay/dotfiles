@@ -1,0 +1,13 @@
+# /etc/systemd/system/minecraft-server.service
+[Unit]
+Description=Darkhttpd server to stand up personal aur build server
+After=network.target
+
+[Service]
+WorkingDirectory=/home/ez/Aur
+ExecStart=darkhttpd /home/ez/Aur --port 9139
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
