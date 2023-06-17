@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # Setting this, so the repo does not need to be given on the commandline:
-export BORG_REPO=ez@reposerver:/backup/stinkpad
+machine="$( hostnamectl --static )"
+export BORG_REPO="ez@reposerver:/backup/$machine"
 
 # See the section "Passphrase notes" for more infos.
 export BORG_PASSPHRASE=''
