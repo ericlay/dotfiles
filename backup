@@ -1,0 +1,122 @@
+#!/bin/sh
+
+# Setting this, so the repo does not need to be given on the commandline:
+export BORG_REPO=ez@reposerver:/backup/stinkpad
+
+# See the section "Passphrase notes" for more infos.
+export BORG_PASSPHRASE=''
+
+# Non-interactively accept relocation of a repository
+export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes 
+
+# some helpers and error handling:
+infoLine() { printf "\n%s\n%s\n" "$( date +%H:%M:%S )" "$*" | tee -a "$logFile"; }
+trap 'echo $( date ) Backup interrupted >&2; exit 2' INT TERM
+logFile="/home/ez/.cache/logs/borg/$( date +%Y-%m-%d-%H:%M:%S.%N )"
+
+# Notify user of running backup
+notify() {
+    if [ "$(command -v sudo)" -a "$(command -v notify-send)" ]; then
+        dialog_kind=$(echo $1|tr '[:upper:]' '[:lower:]')
+        if [ $dialog_kind == 'info' ]; then
+            dialog_kind='information'
+        fi
+        for u in $(users); do
+            sudo -u "$u" DISPLAY=:0 \
+            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(sudo -u $u id -u)/bus \
+            notify-send -a 'luky-borg-backup' "$1" "$2" --icon=dialog-$dialog_kind
+        done
+    fi
+}
+
+notify info "Starting backup to $BORG_REPO"
+infoLine "Starting backup to $BORG_REPO" 
+
+# Backup the most important directories into an archive named after
+# the machine this script is currently running on:
+
+borg create                         \
+    --verbose                       \
+    --stats                         \
+    --show-rc                       \
+    --compression lz4               \
+    --progress                      \
+    --exclude-caches                \
+    --exclude 'home/*/.cache/*'     \
+    --exclude 'var/tmp/*'           \
+	--exclude '/etc/mtab'           \
+	--exclude '/backup/'            \
+	--exclude '/dev/'               \
+	--exclude '/lost+found/'        \
+	--exclude '/mnt/'               \
+	--exclude '/proc/'              \
+	--exclude '/run/'               \
+	--exclude '/sys/'               \
+	--exclude '/tmp/'               \
+	--exclude '/home/*/.cache/mozilla/firefox/' \
+	--exclude '/home/*/.local/share/Trash/' \
+	--exclude '/home/*/.thumbnails/' \
+                                    \
+    ::'{hostname}-{now:%Y-%m-%dT%H:%M:%S.%f}' \
+	/boot                           \
+	/bin                            \
+	/efi                            \
+	/etc                            \
+	/home                           \
+	/lib                            \
+	/lib64                          \
+	/opt                            \
+	/root                           \
+	/sbin                           \
+	/srv                            \
+	/usr                            \
+	/var                            \
+	2>> "$logFile"
+	
+backup_exit=$?
+
+notify info "Pruning repository: $BORG_REPO"
+infoLine "Pruning repository: $BORG_REPO" 
+
+# Use the `prune` subcommand to maintain 7 daily, 4 weekly and 6 monthly
+# archives of THIS machine. The '{hostname}-*' matching is very important to
+# limit prune's operation to this machine's archives and not apply to
+# other machines' archives also:
+
+borg prune                          \
+    --list                          \
+    --glob-archives '{hostname}-*'  \
+    --show-rc                       \
+    --keep-daily    3               \
+    --keep-weekly   4               \
+    --keep-monthly  6               \
+    --keep-yearly	1               \
+	2>> "$logFile"
+	
+prune_exit=$?
+
+# actually free repo disk space by compacting segments
+
+notify info "Compacting repository: $BORG_REPO"
+infoLine "Compacting repository: $BORG_REPO"
+ 
+borg compact 2>> "$logFile"
+
+compact_exit=$?
+
+# use highest exit code as global exit code
+global_exit=$(( backup_exit > prune_exit ? backup_exit : prune_exit ))
+global_exit=$(( compact_exit > global_exit ? compact_exit : global_exit ))
+
+if [ ${global_exit} -eq 0 ]; then
+    notify info "Backup, Prune, and Compact finished successfully to $BORG_REPO"
+    infoLine "Backup, Prune, and Compact finished successfully to $BORG_REPO"
+elif [ ${global_exit} -eq 1 ]; then
+    notify info "Backup, Prune, and/or Compact finished with warnings"
+    infoLine "Backup, Prune, and/or Compact finished with warnings"
+else
+    notify info "Backup, Prune, and/or Compact finished with errors"
+    infoLine "Backup, Prune, and/or Compact finished with errors"
+fi
+
+exit ${global_exit}
