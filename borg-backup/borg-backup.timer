@@ -1,0 +1,11 @@
+[Unit]
+Description=Borg Backup Service Timer
+
+[Timer]
+Unit=borg-backup.service
+OnCalendar=*-*-* 4:00:00
+AccuracySec=1h
+Persistent=yes
+
+[Install]
+WantedBy=timers.target

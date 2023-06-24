@@ -1,0 +1,7 @@
+[Unit]
+Description=Borg Backup Service
+After=network.target sshd.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/ez/.local/bin/backup

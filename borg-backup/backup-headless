@@ -1,0 +1,116 @@
+#!/bin/sh
+
+# Setting this, so the repo does not need to be given on the commandline:
+machine="$( hostnamectl --static )"
+#remoteHost=""
+#remoteUser=""
+export BORG_REPO="/backup/$machine"
+
+# See the section "Passphrase notes" for more infos.
+export BORG_PASSPHRASE=''
+
+# Non-interactively accept relocation of a repository
+export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes 
+
+# some helpers and error handling:
+logPath="/home/ez/.cache/logs/borg"
+logFile="$logPath/$( date +%Y-%m-%d-%H:%M:%S.%N )"
+infoLine() { printf "%s\t%s\n" "$( date +%H:%M:%S )" "$*" | tee -a "$logFile"; }
+seeLog() { printf "\n%s %s" "$*" "$logFile"; }
+trap 'echo $( date ) Backup interrupted >&2; exit 2' INT TERM
+
+# Remove logs of pruned backups
+tidyLogs() {
+	mapfile -t removeList < <(grep -w "^Pruning archive" "$logFile" | awk '{ print $4 }' )
+	for ((i=0; i<${#removeList[@]}; i++)); do
+	rm "$logPath/${removeList[i]}"
+	done
+}
+
+# Backup the most important directories into an archive named after
+# the machine this script is currently running on:
+infoLine "Starting backup to $BORG_REPO" 
+
+borg create                         \
+    --verbose                       \
+    --stats                         \
+    --show-rc                       \
+    --compression lz4               \
+    --progress                      \
+    --exclude-caches                \
+    --exclude 'home/*/.cache/*'     \
+    --exclude 'var/tmp/*'           \
+	--exclude '/etc/mtab'           \
+	--exclude '/backup/'            \
+	--exclude '/dev/'               \
+	--exclude '/lost+found/'        \
+	--exclude '/mnt/'               \
+	--exclude '/proc/'              \
+	--exclude '/run/'               \
+	--exclude '/sys/'               \
+	--exclude '/tmp/'               \
+	--exclude '/home/*/.cache/mozilla/firefox/' \
+	--exclude '/home/*/.local/share/Trash/' \
+	--exclude '/home/*/.thumbnails/' \
+                                    \
+    ::'{hostname}-{now:%Y-%m-%dT%H:%M:%S.%f}' \
+	/boot                           \
+	/bin                            \
+	/etc                            \
+	/home                           \
+	/lib                            \
+	/lib64                          \
+	/opt                            \
+	/root                           \
+	/sbin                           \
+	/srv                            \
+	/usr                            \
+	/var                            \
+	2>> "$logFile"
+	
+backup_exit=$?
+
+# Use the `prune` subcommand to maintain 7 daily, 4 weekly and 6 monthly
+# archives of THIS machine. The '{hostname}-*' matching is very important to
+# limit prune's operation to this machine's archives and not apply to
+# other machines' archives also:
+infoLine "Pruning repository" 
+
+borg prune                          \
+    --list                          \
+    --glob-archives '{hostname}-*'  \
+    --show-rc                       \
+    --keep-daily    3               \
+    --keep-weekly   4               \
+    --keep-monthly  6               \
+    --keep-yearly	1               \
+	2>> "$logFile"
+	
+prune_exit=$?
+
+# actually free repo disk space by compacting segments
+infoLine "Compacting repository"
+
+borg compact 2>> "$logFile"
+
+compact_exit=$?
+
+# Don't forget to tidy up the log files!
+tidyLogs
+
+# use highest exit code as global exit code
+global_exit=$(( backup_exit > prune_exit ? backup_exit : prune_exit ))
+global_exit=$(( compact_exit > global_exit ? compact_exit : global_exit ))
+
+if [ ${global_exit} -eq 0 ]; then
+    infoLine "Backup, Prune, and Compact finished successfully"
+    seeLog "Log available:"
+elif [ ${global_exit} -eq 1 ]; then
+    infoLine "Backup, Prune, and/or Compact finished with warnings"
+    seeLog "Check log for warnings:"
+else
+    infoLine "Backup, Prune, and/or Compact finished with errors"
+    seeLog "Check log for errors:"
+fi
+
+exit ${global_exit}
