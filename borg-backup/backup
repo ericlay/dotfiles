@@ -91,7 +91,7 @@ backup_exit=$?
 # archives of THIS machine. The '{hostname}-*' matching is very important to
 # limit prune's operation to this machine's archives and not apply to
 # other machines' archives also:
-notify info "Pruning repository: $BORG_REPO"
+notify info "Pruning repository"
 infoLine "Pruning repository" 
 
 borg prune                          \
@@ -107,7 +107,7 @@ borg prune                          \
 prune_exit=$?
 
 # actually free repo disk space by compacting segments
-notify info "Compacting repository: $BORG_REPO"
+notify info "Compacting repository"
 infoLine "Compacting repository"
  
 borg compact 2>> "$logFile"
