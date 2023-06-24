@@ -5,3 +5,6 @@ After=network.target sshd.service
 [Service]
 Type=oneshot
 ExecStart=/home/ez/.local/bin/backup
+
+[Install]
+WantedBy=multi-user.target
