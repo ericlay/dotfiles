@@ -2,6 +2,8 @@
 
 # Setting this, so the repo does not need to be given on the commandline:
 machine="$( hostnamectl --static )"
+#remoteHost=""
+#remoteUser=""
 export BORG_REPO="/backup/$machine"
 
 # See the section "Passphrase notes" for more infos.
@@ -11,10 +13,19 @@ export BORG_PASSPHRASE=''
 export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes 
 
 # some helpers and error handling:
-logFile="/home/ez/.cache/logs/borg/$( date +%Y-%m-%d-%H:%M:%S )"
+logPath="/home/ez/.cache/logs/borg"
+logFile="$logPath/$( date +%Y-%m-%d-%H:%M:%S.%N )"
 infoLine() { printf "%s\t%s\n" "$( date +%H:%M:%S )" "$*" | tee -a "$logFile"; }
 seeLog() { printf "\n%s %s" "$*" "$logFile"; }
 trap 'echo $( date ) Backup interrupted >&2; exit 2' INT TERM
+
+# Remove logs of pruned backups
+tidyLogs() {
+	mapfile -t removeList < <(grep -w "^Pruning archive" "$logFile" | awk '{ print $4 }' )
+	for ((i=0; i<${#removeList[@]}; i++)); do
+	rm "$logPath/${removeList[i]}"
+	done
+}
 
 # Backup the most important directories into an archive named after
 # the machine this script is currently running on:
@@ -79,9 +90,13 @@ prune_exit=$?
 
 # actually free repo disk space by compacting segments
 infoLine "Compacting repository"
+
 borg compact 2>> "$logFile"
 
 compact_exit=$?
+
+# Don't forget to tidy up the log files!
+tidyLogs
 
 # use highest exit code as global exit code
 global_exit=$(( backup_exit > prune_exit ? backup_exit : prune_exit ))
