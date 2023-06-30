@@ -1,20 +1,19 @@
 #!/bin/sh
 
-# Setting this, so the repo does not need to be given on the commandline:
-machine="$( hostnamectl --static )"
-remoteHost="reposerver"
+# Setting this, so it can be ported to multiple device easily
 remoteUser=""
+remoteHost="reposerver"
+machine="$( hostnamectl --static )"
 export BORG_REPO="$remoteUser@$remoteHost:/backup/$machine"
 
-# See the section "Passphrase notes" for more infos.
+# See the section "Passphrase notes" for more infos
 export BORG_PASSPHRASE=''
 
 # Non-interactively accept relocation of a repository
 export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes 
 
-# Some helpers and error handling:
-logPath="/home/ez/.cache/logs/borg"
-logFile="$logPath/$( date +%Y-%m-%d-%H:%M:%S.%N )"
+# Some helpers and error handling
+logFile="/home/ez/.cache/logs/borg/$machine-$( date +%Y-%m-%d-%H:%M:%S.%N )"
 infoLine() { printf "%s\t%s\n" "$( date +%H:%M:%S )" "$*" | tee -a "$logFile"; }
 seeLog() { printf "\n%s %s" "$*" "$logFile"; }
 trap 'echo $( date ) Backup interrupted >&2; exit 2' INT TERM
@@ -27,9 +26,9 @@ notify() {
             dialog_kind='information'
         fi
         for u in $(users); do
-            sudo -u "$u" DISPLAY=:0 \
+            sudo -u "$u" DISPLAY=:0 
             DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/"$(sudo -u "$u" id -u)/bus" \
-            notify-send -a 'luky-borg-backup' "$1" "$2" --icon="dialog-$dialog_kind"
+            notify-send --app-name="Borg Backup" "$1" "$2" --icon="dialog-$dialog_kind"
         done
     fi
 }
@@ -38,12 +37,17 @@ notify() {
 tidyLogs() {
 	mapfile -t removeList < <(grep -w "^Pruning archive" "$logFile" | awk '{ print $4 }' )
 	for ((i=0; i<${#removeList[@]}; i++)); do
-	rm "$logPath/${removeList[i]}"
+	# Expand path of logFile
+	# Slice off the current backup name
+	# Slice off seconds from timestamp 
+	# Use wildcard to match the rest for matching filenames easily
+	set -- "${logFile%/*}"/"${removeList[i]%:*}"*
+	rm "$@"
 	done
 }
 
 # Backup the most important directories into an archive named after
-# the machine this script is currently running on:
+# the machine this script is currently running on
 notify info "Starting backup to $BORG_REPO"
 infoLine "Starting backup to $BORG_REPO" 
 
@@ -90,7 +94,7 @@ backup_exit=$?
 # Use the `prune` subcommand to maintain 7 daily, 4 weekly and 6 monthly
 # archives of THIS machine. The '{hostname}-*' matching is very important to
 # limit prune's operation to this machine's archives and not apply to
-# other machines' archives also:
+# other machines' archives also
 notify info "Pruning repository"
 infoLine "Pruning repository" 
 
